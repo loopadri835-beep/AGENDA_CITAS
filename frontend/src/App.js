@@ -8,7 +8,9 @@ import { useMemo } from "react";
 
 
 // Después:
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+const baseApi = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+// Ensure API_URL always ends with '/api' (avoid accidental missing or duplicate slashes)
+const API_URL = baseApi.endsWith('/api') ? baseApi : baseApi.replace(/\/$/, '') + '/api';
 
 const JohanaMakeupSalon = () => {
   const [currentView, setCurrentView] = useState('home');
