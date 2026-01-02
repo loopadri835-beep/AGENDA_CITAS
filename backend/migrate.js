@@ -67,15 +67,22 @@ async function migrate() {
       )
     `);
 
-    // Tabla de clientes
+    // Tabla de clientes (permitir email opcional, NULLs permitidos)
     await appClient.query(`
       CREATE TABLE IF NOT EXISTS clients (
         id SERIAL PRIMARY KEY,
         name VARCHAR(150) NOT NULL,
-        email VARCHAR(150) UNIQUE NOT NULL,
-        phone VARCHAR(20) NOT NULL,
+        email VARCHAR(150) UNIQUE,
+        phone VARCHAR(20),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `);
+    // Acomodar filas antiguas y permitir NULLs
+    await appClient.query(`
+      UPDATE clients SET email = NULL WHERE TRIM(email) = '';
+    `);
+    await appClient.query(`
+      ALTER TABLE clients ALTER COLUMN email DROP NOT NULL;
     `);
 
     // Tabla de citas

@@ -145,6 +145,10 @@ app.post('/api/appointments', async (req, res) => {
     time 
   } = req.body;
 
+  // Normalizar datos opcionales
+  const safeEmail = clientEmail && clientEmail.trim() ? clientEmail.trim() : null;
+  const safePhone = clientPhone && clientPhone.trim() ? clientPhone.trim() : null;
+
   const client = await pool.connect();
   
   try {
@@ -165,9 +169,9 @@ app.post('/api/appointments', async (req, res) => {
       `INSERT INTO clients (name, email, phone) 
        VALUES ($1, $2, $3) 
        ON CONFLICT (email) 
-       DO UPDATE SET name = $1, phone = $3
+       DO UPDATE SET name = EXCLUDED.name, phone = COALESCE(EXCLUDED.phone, clients.phone)
        RETURNING id`,
-      [clientName, clientEmail, clientPhone]
+      [clientName, safeEmail, safePhone]
     );
 
     const clientId = clientResult.rows[0].id;
