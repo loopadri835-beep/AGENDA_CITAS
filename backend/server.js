@@ -6,7 +6,13 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
-app.use(cors());
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || '*', // change to a specific origin in production if needed
+  methods: ['GET','POST','PATCH','DELETE','OPTIONS'],
+  credentials: true,
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 // Configuración PostgreSQL
@@ -235,6 +241,15 @@ app.delete('/api/appointments/:id', async (req, res) => {
     console.error('Error eliminando cita:', err);
     res.status(500).json({ error: err.message });
   }
+});
+
+// Health check endpoint (useful for readiness probes)
+app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
+// Generic error handler (logs stack and returns JSON)
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err && err.stack ? err.stack : err);
+  res.status(500).json({ error: 'Internal server error', message: err?.message });
 });
 
 const PORT = process.env.PORT || 5000;
